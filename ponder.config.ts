@@ -1,21 +1,32 @@
 import { createConfig } from "ponder";
 import { http } from "viem";
 import { erc20ABI } from "./abis/erc20ABI";
+import { avalancheFuji, holesky } from "viem/chains";
 
 export default createConfig({
   networks: {
-    mainnet: {
-      chainId: 1,
-      transport: http(process.env.PONDER_RPC_URL_1),
+    holesky: {
+      chainId: holesky.id,
+      transport: http(process.env.PONDER_RPC_URL_17000),
+    },
+    avalancheFuji: {
+      chainId: avalancheFuji.id,
+      transport: http(process.env.PONDER_RPC_URL_43113),
     },
   },
   contracts: {
     ERC20: {
-      network: "mainnet",
       abi: erc20ABI,
-      address: "0x32353A6C91143bfd6C7d363B546e62a9A2489A20",
-      startBlock: 13142655,
-      endBlock: 13150000,
+      network: {
+        holesky: {
+          address: ["0x9cCad419A897FD2D4C7aC34B0D0B89bE1E9A6f8b"],
+          startBlock: 3133410,
+        },
+        avalancheFuji: {
+          address: ["0x16a2779b4F52424C89CbC897E53e5e954A25E72F"],
+          startBlock: 37520360,
+        },
+      },
     },
   },
 });

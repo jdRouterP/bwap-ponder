@@ -1,53 +1,54 @@
 import { ponder } from "ponder:registry";
 import {
-  account,
-  allowance,
-  approvalEvent,
+  crossTransfer,
   transferEvent,
 } from "ponder:schema";
+import { depositAddress, solverAddress } from "./constants";
 
 ponder.on("ERC20:Transfer", async ({ event, context }) => {
-  await context.db
-    .insert(account)
-    .values({ address: event.args.from, balance: 0n, isOwner: false })
-    .onConflictDoUpdate((row) => ({
-      balance: row.balance - event.args.amount,
-    }));
+  const hash = deriveHash(event.transaction.input);
 
-  await context.db
-    .insert(account)
-    .values({ address: event.args.to, balance: 0n, isOwner: false })
-    .onConflictDoUpdate((row) => ({
-      balance: row.balance + event.args.amount,
-    }));
+  if (!hash) {
+    return;
+  }
+  // if (event.transaction.hash.toLowerCase() === "0x0e001032e042cc54c96013760171d04cd0322b7c5f4c3ec94c192ffb59a9a305".toLowerCase()) {
+  console.log("args", context.network.chainId);
+  console.log("args", event.args);
+  // console.log("received", event);
+  // }
 
-  // add row to "transfer_event".
+  if (depositAddress[context.network.chainId].includes(event.args.to.toLowerCase())) {
+    await context.db.insert(crossTransfer).values({
+      id: hash,
+      src_hash: event.transaction.hash,
+      dst_hash: null,
+    });
+  } else if (solverAddress[context.network.chainId].includes(event.args.from.toLowerCase())) {
+    // get crossTransfer by id i.e hash
+    await context.db.update(crossTransfer, {
+      id: hash
+    }).set({
+      dst_hash: event.transaction.hash,
+    });
+  }
+
   await context.db.insert(transferEvent).values({
-    id: event.log.id,
+    id: event.transaction.hash,
+    block_number: Number(event.block.number),
+    tx_hash: event.transaction.hash,
     amount: event.args.amount,
     timestamp: Number(event.block.timestamp),
     from: event.args.from,
     to: event.args.to,
+    hash: hash,
   });
 });
 
-ponder.on("ERC20:Approval", async ({ event, context }) => {
-  // upsert "allowance".
-  await context.db
-    .insert(allowance)
-    .values({
-      spender: event.args.spender,
-      owner: event.args.owner,
-      amount: event.args.amount,
-    })
-    .onConflictDoUpdate({ amount: event.args.amount });
+function deriveHash(input: `0x${string}`) {
+  if (input.length !== 202) {
+    return null;
+  }
+  // last 32 bytes
+  return `0x${input.slice(input.length - 64)}` as `0x${string}`;
+}
 
-  // add row to "approval_event".
-  await context.db.insert(approvalEvent).values({
-    id: event.log.id,
-    amount: event.args.amount,
-    timestamp: Number(event.block.timestamp),
-    owner: event.args.owner,
-    spender: event.args.spender,
-  });
-});

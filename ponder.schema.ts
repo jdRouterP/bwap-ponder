@@ -1,48 +1,35 @@
-import { index, onchainTable, primaryKey, relations } from "ponder";
+import { index, onchainTable, relations } from "ponder";
 
-export const account = onchainTable("account", (t) => ({
-  address: t.hex().primaryKey(),
-  balance: t.bigint().notNull(),
-  isOwner: t.boolean().notNull(),
+export const crossTransfer = onchainTable("cross_transfer", (t) => ({
+  id: t.text().primaryKey(),
+  src_hash: t.hex().notNull(),
+  dst_hash: t.hex(),
 }));
 
-export const allowance = onchainTable(
-  "allowance",
-  (t) => ({
-    owner: t.hex(),
-    spender: t.hex(),
-    amount: t.bigint().notNull(),
+export const crossTransferRelations = relations(crossTransfer, ({ one }) => ({
+  src: one(transferEvent, {
+    fields: [crossTransfer.src_hash],
+    references: [transferEvent.id],
   }),
-  (table) => ({
-    pk: primaryKey({ columns: [table.owner, table.spender] }),
+  dst: one(transferEvent, {
+    fields: [crossTransfer.dst_hash],
+    references: [transferEvent.id],
   }),
-);
+}));
 
 export const transferEvent = onchainTable(
-  "transfer_event",
+  "transfer",
   (t) => ({
     id: t.text().primaryKey(),
+    block_number: t.integer().notNull(),
+    tx_hash: t.hex().notNull(),
     amount: t.bigint().notNull(),
     timestamp: t.integer().notNull(),
     from: t.hex().notNull(),
     to: t.hex().notNull(),
+    hash: t.hex().notNull(),
   }),
   (table) => ({
     fromIdx: index("from_index").on(table.from),
   }),
 );
-
-export const transferEventRelations = relations(transferEvent, ({ one }) => ({
-  fromAccount: one(account, {
-    fields: [transferEvent.from],
-    references: [account.address],
-  }),
-}));
-
-export const approvalEvent = onchainTable("approval_event", (t) => ({
-  id: t.text().primaryKey(),
-  amount: t.bigint().notNull(),
-  timestamp: t.integer().notNull(),
-  owner: t.hex().notNull(),
-  spender: t.hex().notNull(),
-}));
