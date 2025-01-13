@@ -9,24 +9,30 @@ services:
       - NODE_ENV=production
       - PONDER_RPC_URL_17000=https://holesky.gateway.tenderly.co
       - PONDER_RPC_URL_43113=https://rpc.ankr.com/avalanche_fuji
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ponder_db
+      - DATABASE_URL=postgresql://ponder:ponderpass@postgres:5432/ponder_db
       - DATABASE_SCHEMA=my_schema
       - PONDER_TELEMETRY_DISABLED=true
     volumes:
       - ponder-data:/app/.ponder
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:15-alpine
     ports:
-      - "6767:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=ponder
       - POSTGRES_PASSWORD=ponderpass
       - POSTGRES_DB=ponder_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ponder -d ponder_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   ponder-data:
