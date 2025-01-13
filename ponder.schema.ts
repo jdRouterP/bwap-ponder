@@ -1,9 +1,14 @@
-import { index, onchainTable, relations } from "ponder";
+import { index, onchainEnum, onchainTable, relations } from "ponder";
+
+export const status = onchainEnum("status", ["PENDING", "COMPLETED", "FAILED"]);
 
 export const crossTransfer = onchainTable("cross_transfer", (t) => ({
   id: t.text().primaryKey(),
   src_hash: t.hex().notNull(),
   dst_hash: t.hex(),
+  created_at: t.integer().notNull(),
+  filled_at: t.integer(),
+  status: status("status").notNull(),
 }));
 
 export const crossTransferRelations = relations(crossTransfer, ({ one }) => ({

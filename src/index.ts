@@ -16,6 +16,8 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
       id: hash,
       src_hash: event.transaction.hash,
       dst_hash: null,
+      status: "PENDING",
+      created_at: Number(event.block.timestamp),
     });
   } else if (solverAddress[context.network.chainId].includes(event.args.from.toLowerCase())) {
     // get crossTransfer by id i.e hash
@@ -23,6 +25,8 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
       id: hash
     }).set({
       dst_hash: event.transaction.hash,
+      status: "COMPLETED",
+      filled_at: Number(event.block.timestamp),
     });
   }
 
