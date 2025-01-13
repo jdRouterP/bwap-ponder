@@ -11,12 +11,6 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
   if (!hash) {
     return;
   }
-  // if (event.transaction.hash.toLowerCase() === "0x0e001032e042cc54c96013760171d04cd0322b7c5f4c3ec94c192ffb59a9a305".toLowerCase()) {
-  console.log("args", context.network.chainId);
-  console.log("args", event.args);
-  // console.log("received", event);
-  // }
-
   if (depositAddress[context.network.chainId].includes(event.args.to.toLowerCase())) {
     await context.db.insert(crossTransfer).values({
       id: hash,
