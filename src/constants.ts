@@ -1,8 +1,8 @@
 import { avalancheFuji, holesky } from "viem/chains";
 
 export const depositAddress = {
-    [holesky.id]: ["0x9A9dF446993f093F221b353c96b757D316629a9c".toLowerCase()],
-    [avalancheFuji.id]: ["0x9A9dF446993f093F221b353c96b757D316629a9c".toLowerCase()],
+    [holesky.id]: ["0x25FA874601756484e51807b14Cc8114812F342BE".toLowerCase()],
+    [avalancheFuji.id]: ["0x25FA874601756484e51807b14Cc8114812F342BE".toLowerCase()],
 };
 
 export const solverAddress = {

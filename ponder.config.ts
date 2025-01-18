@@ -1,5 +1,5 @@
 import { createConfig } from "ponder";
-import { http } from "viem";
+import { http, webSocket } from "viem";
 import { erc20ABI } from "./abis/erc20ABI";
 import { avalancheFuji, holesky } from "viem/chains";
 
@@ -20,11 +20,11 @@ export default createConfig({
       network: {
         holesky: {
           address: ["0x9cCad419A897FD2D4C7aC34B0D0B89bE1E9A6f8b"],
-          startBlock: 3133410,
+          startBlock: 3170538,
         },
         avalancheFuji: {
           address: ["0x16a2779b4F52424C89CbC897E53e5e954A25E72F"],
-          startBlock: 37520360,
+          startBlock: 37639802,
         },
       },
     },
