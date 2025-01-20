@@ -4,8 +4,7 @@ import { rabbitMQProducer } from "./services/rabbitmq-producer";
 
 // Initialize RabbitMQ connection when the app starts
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
-const ROUTING_KEY = process.env.RABBITMQ_ROUTING_KEY || 'deposit';
-rabbitMQProducer.initialize(RABBITMQ_URL, ROUTING_KEY).catch(console.error);
+rabbitMQProducer.initialize(RABBITMQ_URL).catch(console.error);
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
@@ -47,7 +46,7 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
     }],
     event_name: 'Transfer',
     network: context.network.name
-  });
+  }, context.network.name);
 });
 
 function deriveHash(input: `0x${string}`) {

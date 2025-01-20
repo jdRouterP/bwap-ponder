@@ -40,11 +40,9 @@ export class RabbitMQProducer {
     private connection: Connection | null = null;
     private channel: Channel | null = null;
     private readonly exchangeName = 'cross_transfers';
-    private routingKey: string = '';
 
-    async initialize(url: string, routingKey: string) {
+    async initialize(url: string) {
         try {
-            this.routingKey = routingKey;
             this.connection = await amqp.connect(url);
             this.channel = await this.connection.createChannel();
 
@@ -61,14 +59,14 @@ export class RabbitMQProducer {
         }
     }
 
-    async publishTransfer(data: TransferEvent) {
+    async publishTransfer(data: TransferEvent, routingKey: string) {
         if (!this.channel) {
             throw new Error('RabbitMQ channel not initialized');
         }
 
         try {
             const message = Buffer.from(JSON.stringify(data));
-            this.channel.publish(this.exchangeName, this.routingKey, message, {
+            this.channel.publish(this.exchangeName, routingKey, message, {
                 persistent: true,
                 contentType: 'application/json'
             });
