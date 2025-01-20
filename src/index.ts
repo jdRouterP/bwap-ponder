@@ -1,36 +1,23 @@
 import { ponder } from "ponder:registry";
-import {
-  crossTransfer,
-  transferEvent,
-} from "ponder:schema";
-import { depositAddress, solverAddress } from "./constants";
+import { transferEvent } from "ponder:schema";
+import { rabbitMQProducer } from "./services/rabbitmq-producer";
+
+// Initialize RabbitMQ connection when the app starts
+const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+const ROUTING_KEY = process.env.RABBITMQ_ROUTING_KEY || 'deposit';
+rabbitMQProducer.initialize(RABBITMQ_URL, ROUTING_KEY).catch(console.error);
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  await rabbitMQProducer.shutdown();
+  process.exit(0);
+});
 
 ponder.on("ERC20:Transfer", async ({ event, context }) => {
   const hash = deriveHash(event.transaction.input);
+  if (!hash) return;
 
-  if (!hash) {
-    return;
-  }
-  if (depositAddress[context.network.chainId].includes(event.args.to.toLowerCase())) {
-    await context.db.insert(crossTransfer).values({
-      id: hash,
-      src_hash: event.transaction.hash,
-      dst_hash: null,
-      status: "PENDING",
-      created_at: Number(event.block.timestamp),
-    });
-  } else if (solverAddress[context.network.chainId].includes(event.args.from.toLowerCase())) {
-    // get crossTransfer by id i.e hash
-    await context.db.update(crossTransfer, {
-      id: hash
-    }).set({
-      dst_hash: event.transaction.hash,
-      status: "COMPLETED",
-      filled_at: Number(event.block.timestamp),
-    });
-  }
-
-  await context.db.insert(transferEvent).values({
+  const transferData = {
     id: event.transaction.hash,
     block_number: Number(event.block.number),
     tx_hash: event.transaction.hash,
@@ -39,14 +26,32 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
     from: event.args.from,
     to: event.args.to,
     hash: hash,
+  };
+
+  await context.db.insert(transferEvent).values(transferData);
+
+  // Publish transfer event to RabbitMQ
+  await rabbitMQProducer.publishTransfer({
+    event_data: [{
+      from: event.args.from.toLowerCase(),
+      to: event.args.to.toLowerCase(),
+      value: event.args.amount.toString(),
+      transaction_information: {
+        address: event.log.address.toLowerCase(),
+        input: event.transaction.input,
+        network: context.network.name,
+        transaction_hash: event.transaction.hash,
+      },
+      network: context.network.name,
+      event_name: 'Transfer'
+    }],
+    event_name: 'Transfer',
+    network: context.network.name
   });
 });
 
 function deriveHash(input: `0x${string}`) {
-  if (input.length !== 202) {
-    return null;
-  }
-  // last 32 bytes
+  if (input.length !== 202) return null;
   return `0x${input.slice(input.length - 64)}` as `0x${string}`;
 }
 
