@@ -4,7 +4,9 @@ import { rabbitMQProducer } from "./services/rabbitmq-producer";
 
 // Initialize RabbitMQ connection when the app starts
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
-rabbitMQProducer.initialize(RABBITMQ_URL).catch(console.error);
+const EXCHANGE_NAME = process.env.EXCHANGE_NAME || 'cross_transfers';
+const QUEUE_NAME = process.env.QUEUE_NAME || 'cross_transfers_queue';
+rabbitMQProducer.initialize(RABBITMQ_URL, EXCHANGE_NAME, QUEUE_NAME).catch(console.error);
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

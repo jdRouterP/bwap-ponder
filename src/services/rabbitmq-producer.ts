@@ -39,10 +39,12 @@ type TransferEvent = {
 export class RabbitMQProducer {
     private connection: Connection | null = null;
     private channel: Channel | null = null;
-    private readonly exchangeName = 'cross_transfers';
-    private readonly queueName = 'cross_transfers_queue';
-    async initialize(url: string) {
+    private exchangeName: string = '';
+    private queueName: string = '';
+    async initialize(url: string, _exchangeName: string, _queueName: string) {
         try {
+            this.exchangeName = _exchangeName;
+            this.queueName = _queueName;
             this.connection = await amqp.connect(url);
             this.channel = await this.connection.createChannel();
 

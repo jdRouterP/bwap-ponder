@@ -20,13 +20,12 @@ export default createConfig({
       network: {
         holesky: {
           address: ["0x9cCad419A897FD2D4C7aC34B0D0B89bE1E9A6f8b"],
-          startBlock: 3185570,
-          endBlock: 3185585,
+          startBlock: 3189660,
         },
-        // avalancheFuji: {
-        //   address: ["0x16a2779b4F52424C89CbC897E53e5e954A25E72F"],
-        //   startBlock: 37707129,
-        // },
+        avalancheFuji: {
+          address: ["0x16a2779b4F52424C89CbC897E53e5e954A25E72F"],
+          startBlock: 37719104,
+        },
       },
       filter: {
         event: "Transfer",
