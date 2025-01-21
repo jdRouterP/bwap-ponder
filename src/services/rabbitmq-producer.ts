@@ -40,7 +40,7 @@ export class RabbitMQProducer {
     private connection: Connection | null = null;
     private channel: Channel | null = null;
     private readonly exchangeName = 'cross_transfers';
-
+    private readonly queueName = 'cross_transfers_queue';
     async initialize(url: string) {
         try {
             this.connection = await amqp.connect(url);
@@ -51,6 +51,13 @@ export class RabbitMQProducer {
                 durable: true,
                 autoDelete: false
             });
+
+            // Declare and bind the queue
+            await this.channel.assertQueue(this.queueName, {
+                durable: true,
+                autoDelete: false
+            });
+            await this.channel.bindQueue(this.queueName, this.exchangeName, '');
 
             console.log('🐰 Connected to RabbitMQ');
         } catch (error) {
@@ -65,6 +72,7 @@ export class RabbitMQProducer {
         }
 
         try {
+            console.log('Publishing message:', data);
             const message = Buffer.from(JSON.stringify(data));
             this.channel.publish(this.exchangeName, routingKey, message, {
                 persistent: true,
