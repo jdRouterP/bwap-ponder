@@ -20,6 +20,8 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
       created_at: Number(event.block.timestamp),
       sender: event.args.from,
       from_amount: event.args.amount,
+      from_token: event.log.address,
+      from_chain: context.network.chainId,
     }).onConflictDoNothing();
   } else if (solverAddress[context.network.chainId].includes(event.args.from.toLowerCase())) {
     const crossTransferItem = await context.db.find(crossTransfer, {
@@ -39,6 +41,8 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
       filled_at: Number(event.block.timestamp),
       receiver: event.args.to,
       to_amount: event.args.amount,
+      to_token: event.log.address,
+      to_chain: context.network.chainId,
     });
   }
 

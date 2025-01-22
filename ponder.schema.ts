@@ -15,6 +15,10 @@ export const crossTransfer = onchainTable("cross_transfer", (t) => ({
   receiver: t.hex(),
   from_amount: t.bigint(),
   to_amount: t.bigint(),
+  from_token: t.text(),
+  to_token: t.text(),
+  from_chain: t.integer(),
+  to_chain: t.integer(),
 }));
 
 export const crossTransferRelations = relations(crossTransfer, ({ one }) => ({
