@@ -18,17 +18,31 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
       dst_hash: null,
       status: "PENDING",
       created_at: Number(event.block.timestamp),
-    });
+      sender: event.args.from,
+      from_amount: event.args.amount,
+    }).onConflictDoNothing();
   } else if (solverAddress[context.network.chainId].includes(event.args.from.toLowerCase())) {
-    // get crossTransfer by id i.e hash
+    const crossTransferItem = await context.db.find(crossTransfer, {
+      id: hash,
+    });
+    if (!crossTransferItem) {
+      return;
+    }
+    if (crossTransferItem.status === "COMPLETED") {
+      return;
+    }
     await context.db.update(crossTransfer, {
       id: hash
     }).set({
       dst_hash: event.transaction.hash,
       status: "COMPLETED",
       filled_at: Number(event.block.timestamp),
+      receiver: event.args.to,
+      to_amount: event.args.amount,
     });
   }
+
+  const type: "WITHDRAWAL" | "DEPOSIT" = solverAddress[context.network.chainId].includes(event.args.from.toLowerCase()) ? "WITHDRAWAL" : "DEPOSIT";
 
   await context.db.insert(transferEvent).values({
     id: event.transaction.hash,
@@ -38,7 +52,8 @@ ponder.on("ERC20:Transfer", async ({ event, context }) => {
     timestamp: Number(event.block.timestamp),
     from: event.args.from,
     to: event.args.to,
-    hash: hash,
+    hash,
+    type,
   });
 });
 

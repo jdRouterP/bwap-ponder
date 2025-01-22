@@ -2,6 +2,8 @@ import { index, onchainEnum, onchainTable, relations } from "ponder";
 
 export const status = onchainEnum("status", ["PENDING", "COMPLETED", "FAILED"]);
 
+export const type = onchainEnum("type", ["DEPOSIT", "WITHDRAWAL"]);
+
 export const crossTransfer = onchainTable("cross_transfer", (t) => ({
   id: t.text().primaryKey(),
   src_hash: t.hex().notNull(),
@@ -9,6 +11,10 @@ export const crossTransfer = onchainTable("cross_transfer", (t) => ({
   created_at: t.integer().notNull(),
   filled_at: t.integer(),
   status: status("status").notNull(),
+  sender: t.hex().notNull(),
+  receiver: t.hex(),
+  from_amount: t.bigint(),
+  to_amount: t.bigint(),
 }));
 
 export const crossTransferRelations = relations(crossTransfer, ({ one }) => ({
@@ -33,6 +39,7 @@ export const transferEvent = onchainTable(
     from: t.hex().notNull(),
     to: t.hex().notNull(),
     hash: t.hex().notNull(),
+    type: type("type").notNull(),
   }),
   (table) => ({
     fromIdx: index("from_index").on(table.from),
