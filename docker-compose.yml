@@ -1,46 +1,33 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # ponder:
-  #   build: .
-  #   ports:
-  #     - "42069:42069"
-  #   environment:
-  #     - NODE_ENV=production
-  #     - PONDER_RPC_URL_17000=https://holesky.gateway.tenderly.co
-  #     - PONDER_RPC_URL_43113=https://rpc.ankr.com/avalanche_fuji
-  #     - DATABASE_URL=postgresql://ponder:ponderpass@postgres:5432/ponder_db
-  #     - DATABASE_SCHEMA=my_schema
-  #     - PONDER_TELEMETRY_DISABLED=true
-  #     - RABBITMQ_URL=amqp://rabbitmq:5672
-  #   volumes:
-  #     - ponder-data:/app/.ponder
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     rabbitmq:
-  #       condition: service_healthy
-
-  # postgres:
-  #   image: postgres:15-alpine
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     - POSTGRES_USER=ponder
-  #     - POSTGRES_PASSWORD=ponderpass
-  #     - POSTGRES_DB=ponder_db
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ponder -d ponder_db"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 5
+  ponder:
+    build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "42069:42069"
+    environment:
+      - NODE_ENV=production
+      - PONDER_RPC_URL_17000=https://ethereum-holesky.blockpi.network/v1/rpc/af524eebf9bf7e73f1b38522c9dd98618cbaf28e
+      - PONDER_RPC_URL_43113=https://avalanche-fuji.blockpi.network/v1/rpc/25ac5e33dc0a9af23d949c93bc23f8e02be5624e
+      - PONDER_WS_URL_17000=wss://ethereum-holesky.blockpi.network/v1/ws/af524eebf9bf7e73f1b38522c9dd98618cbaf28e
+      - PONDER_WS_URL_43113=wss://avalanche-fuji.blockpi.network/v1/ws/25ac5e33dc0a9af23d949c93bc23f8e02be5624e
+      - DATABASE_URL=
+      - DATABASE_SCHEMA=my_schema
+      - PONDER_TELEMETRY_DISABLED=true
+      - RABBITMQ_URL=amqp://guest:guest@host.docker.internal:5672
+    volumes:
+      - ponder-data:/app/.ponder
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
+    hostname: rabbitmq
     ports:
-      - "5672:5672"   # AMQP protocol port
+      - "5672:5672" # AMQP protocol port
       - "15672:15672" # Management UI port
     environment:
       - RABBITMQ_DEFAULT_USER=guest
@@ -55,5 +42,4 @@ services:
 
 volumes:
   ponder-data:
-  postgres-data:
-  rabbitmq-data: 
+  rabbitmq-data:

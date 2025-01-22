@@ -74,7 +74,6 @@ export class RabbitMQProducer {
         }
 
         try {
-            console.log('Publishing message:', data);
             const message = Buffer.from(JSON.stringify(data));
             this.channel.publish(this.exchangeName, routingKey, message, {
                 persistent: true,

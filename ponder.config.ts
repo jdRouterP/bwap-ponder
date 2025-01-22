@@ -8,10 +8,13 @@ export default createConfig({
     holesky: {
       chainId: holesky.id,
       transport: http(process.env.PONDER_RPC_URL_17000),
+      pollingInterval: 200
+
     },
     avalancheFuji: {
       chainId: avalancheFuji.id,
       transport: http(process.env.PONDER_RPC_URL_43113),
+      pollingInterval: 200
     },
   },
   contracts: {
